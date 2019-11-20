@@ -91,10 +91,12 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   public Configuration parse() {
+    // 判断是否已经加载过
     if (parsed) {
       throw new BuilderException("Each XMLConfigBuilder can only be used once.");
     }
     parsed = true;
+    // 解析configuration节点
     parseConfiguration(parser.evalNode("/configuration"));
     return configuration;
   }
@@ -102,20 +104,35 @@ public class XMLConfigBuilder extends BaseBuilder {
   private void parseConfiguration(XNode root) {
     try {
       //issue #117 read properties first
+      // 属性
       propertiesElement(root.evalNode("properties"));
+      // 设置，这是 MyBatis 中极为重要的调整设置，它们会改变 MyBatis 的运行时行为
       Properties settings = settingsAsProperties(root.evalNode("settings"));
+      // 加载自定义 VFS 实现类
       loadCustomVfs(settings);
+      // 指定 MyBatis 所用日志的具体实现，未指定时将自动查找
       loadCustomLogImpl(settings);
+      // 类型别名，为 Java 类型设置一个短的名字
       typeAliasesElement(root.evalNode("typeAliases"));
+      // 插件，在已映射语句执行过程中的某一点进行拦截调用
       pluginElement(root.evalNode("plugins"));
+      // 对象工厂，MyBatis 每次创建结果对象的新实例时，它都会使用一个对象工厂实例来完成
       objectFactoryElement(root.evalNode("objectFactory"));
+      // 对象包装工厂
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
+      //
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
+      // 设置settings属性到configuration中
       settingsElement(settings);
       // read it after objectFactory and objectWrapperFactory issue #631
+      // 环境配置
       environmentsElement(root.evalNode("environments"));
+      // 数据库厂商标识
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
+      // 类型处理器，MyBatis 在预处理语句（PreparedStatement）中设置一个参数时，
+      // 还是从结果集中取出一个值时， 都会用类型处理器将获取的值以合适的方式转换成 Java 类型
       typeHandlerElement(root.evalNode("typeHandlers"));
+      // SQL 映射语句
       mapperElement(root.evalNode("mappers"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
@@ -360,6 +377,7 @@ public class XMLConfigBuilder extends BaseBuilder {
   private void mapperElement(XNode parent) throws Exception {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
+        // 如果是配置的package那就扫描包，针对已经在方法上使用注解实现功能
         if ("package".equals(child.getName())) {
           String mapperPackage = child.getStringAttribute("name");
           configuration.addMappers(mapperPackage);
@@ -367,17 +385,22 @@ public class XMLConfigBuilder extends BaseBuilder {
           String resource = child.getStringAttribute("resource");
           String url = child.getStringAttribute("url");
           String mapperClass = child.getStringAttribute("class");
+          // 解析本地的xml文件
           if (resource != null && url == null && mapperClass == null) {
             ErrorContext.instance().resource(resource);
             InputStream inputStream = Resources.getResourceAsStream(resource);
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
             mapperParser.parse();
-          } else if (resource == null && url != null && mapperClass == null) {
+          }
+          // 解析远程地址上的xml文件
+          else if (resource == null && url != null && mapperClass == null) {
             ErrorContext.instance().resource(url);
             InputStream inputStream = Resources.getUrlAsStream(url);
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url, configuration.getSqlFragments());
             mapperParser.parse();
-          } else if (resource == null && url == null && mapperClass != null) {
+          }
+          // 单个文件解析，也是针对已经在方法上使用注解实现功能
+          else if (resource == null && url == null && mapperClass != null) {
             Class<?> mapperInterface = Resources.classForName(mapperClass);
             configuration.addMapper(mapperInterface);
           } else {

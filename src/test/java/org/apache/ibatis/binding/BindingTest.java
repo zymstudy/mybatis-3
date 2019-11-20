@@ -21,13 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javassist.util.proxy.Proxy;
 
@@ -44,6 +38,7 @@ import org.apache.ibatis.domain.blog.Post;
 import org.apache.ibatis.domain.blog.Section;
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.apache.ibatis.executor.result.DefaultResultHandler;
+import org.apache.ibatis.logging.stdout.StdOutImpl;
 import org.apache.ibatis.mapping.Environment;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.RowBounds;
@@ -75,6 +70,9 @@ class BindingTest {
     configuration.getTypeAliasRegistry().registerAlias(Author.class);
     configuration.addMapper(BoundBlogMapper.class);
     configuration.addMapper(BoundAuthorMapper.class);
+    configuration.setAggressiveLazyLoading(false);
+    configuration.setLogImpl(StdOutImpl.class);
+
     sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
   }
 
@@ -83,11 +81,14 @@ class BindingTest {
     try (SqlSession session = sqlSessionFactory.openSession()) {
       BoundBlogMapper mapper = session.getMapper(BoundBlogMapper.class);
       Blog b = mapper.selectBlogWithPostsUsingSubSelect(1);
+      System.out.println("===================1" + b.getClass());
       assertEquals(1, b.getId());
+      System.out.println("===================2");
       assertNotNull(b.getAuthor());
       assertEquals(101, b.getAuthor().getId());
       assertEquals("jim", b.getAuthor().getUsername());
       assertEquals("********", b.getAuthor().getPassword());
+      System.out.println("===================3");
       assertEquals(2, b.getPosts().size());
     }
   }

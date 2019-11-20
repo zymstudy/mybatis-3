@@ -69,12 +69,14 @@ public class JavassistProxyFactory implements org.apache.ibatis.executor.loader.
     enhancer.setSuperclass(type);
 
     try {
+      // 根据情况，设置接口为 WriteReplaceInterface 。和序列化相关
       type.getDeclaredMethod(WRITE_REPLACE_METHOD);
       // ObjectOutputStream will call writeReplace of objects returned by writeReplace
       if (LogHolder.log.isDebugEnabled()) {
         LogHolder.log.debug(WRITE_REPLACE_METHOD + " method was found on bean " + type + ", make sure it returns this");
       }
     } catch (NoSuchMethodException e) {
+      // 如果不存在 writeReplace 方法，则设置接口为 WriteReplaceInterface
       enhancer.setInterfaces(new Class[]{WriteReplaceInterface.class});
     } catch (SecurityException e) {
       // nothing to do here
@@ -113,7 +115,9 @@ public class JavassistProxyFactory implements org.apache.ibatis.executor.loader.
     }
 
     public static Object createProxy(Object target, ResultLoaderMap lazyLoader, Configuration configuration, ObjectFactory objectFactory, List<Class<?>> constructorArgTypes, List<Object> constructorArgs) {
+      // 代理类类对象
       final Class<?> type = target.getClass();
+      //
       EnhancedResultObjectProxyImpl callback = new EnhancedResultObjectProxyImpl(type, lazyLoader, configuration, objectFactory, constructorArgTypes, constructorArgs);
       Object enhanced = crateProxy(type, callback, constructorArgTypes, constructorArgs);
       PropertyCopier.copyBeanProperties(type, target, enhanced);

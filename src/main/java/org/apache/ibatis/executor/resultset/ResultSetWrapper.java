@@ -37,14 +37,30 @@ import org.apache.ibatis.type.UnknownTypeHandler;
 
 /**
  * @author Iwao AVE!
+ * java.sql.ResultSet 的工具类，提供给 DefaultResultSetHandler 使用
  */
 public class ResultSetWrapper {
 
   private final ResultSet resultSet;
   private final TypeHandlerRegistry typeHandlerRegistry;
+  /**
+   * 字段的名字的数组
+   */
   private final List<String> columnNames = new ArrayList<>();
+  /**
+   * 字段的 Java Type 的数组
+   */
   private final List<String> classNames = new ArrayList<>();
+  /**
+   * 字段的 JdbcType 的数组
+   */
   private final List<JdbcType> jdbcTypes = new ArrayList<>();
+  /**
+   * TypeHandler 的映射
+   *
+   * KEY1：字段的名字
+   * KEY2：Java 属性类型
+   */
   private final Map<String, Map<Class<?>, TypeHandler<?>>> typeHandlerMap = new HashMap<>();
   private final Map<String, List<String>> mappedColumnNamesMap = new HashMap<>();
   private final Map<String, List<String>> unMappedColumnNamesMap = new HashMap<>();
@@ -91,13 +107,14 @@ public class ResultSetWrapper {
    * Gets the type handler to use when reading the result set.
    * Tries to get from the TypeHandlerRegistry by searching for the property type.
    * If not found it gets the column JDBC type and tries to get a handler for it.
-   *
+   * 获得指定字段名的指定 JavaType 类型的 TypeHandler 对象
    * @param propertyType
    * @param columnName
    * @return
    */
   public TypeHandler<?> getTypeHandler(Class<?> propertyType, String columnName) {
     TypeHandler<?> handler = null;
+    // 先从缓存的 typeHandlerMap 中，获得指定字段名的指定 JavaType 类型的 TypeHandler 对象
     Map<Class<?>, TypeHandler<?>> columnHandlers = typeHandlerMap.get(columnName);
     if (columnHandlers == null) {
       columnHandlers = new HashMap<>();

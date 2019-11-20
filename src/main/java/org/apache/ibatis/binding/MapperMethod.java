@@ -139,14 +139,18 @@ public class MapperMethod {
 
   private <E> Object executeForMany(SqlSession sqlSession, Object[] args) {
     List<E> result;
+    // 根据@Param或者是默认命名param1，param2。集合所有参数
     Object param = method.convertArgsToSqlCommandParam(args);
+    // 内存分页
     if (method.hasRowBounds()) {
       RowBounds rowBounds = method.extractRowBounds(args);
       result = sqlSession.selectList(command.getName(), param, rowBounds);
+      // 不分页
     } else {
       result = sqlSession.selectList(command.getName(), param);
     }
     // issue #510 Collections & arrays support
+    // 根据方法返回参数类型包装结果
     if (!method.getReturnType().isAssignableFrom(result.getClass())) {
       if (method.getReturnType().isArray()) {
         return convertToArray(result);
@@ -224,6 +228,8 @@ public class MapperMethod {
     public SqlCommand(Configuration configuration, Class<?> mapperInterface, Method method) {
       final String methodName = method.getName();
       final Class<?> declaringClass = method.getDeclaringClass();
+      // 根据类名.方法名获取对应的MappedStatement对象
+      // 或者是递归查找父类，根据父类名.方法名获取
       MappedStatement ms = resolveMappedStatement(mapperInterface, methodName, declaringClass,
           configuration);
       if (ms == null) {
@@ -236,6 +242,7 @@ public class MapperMethod {
         }
       } else {
         name = ms.getId();
+        // 方法对应的xml标签类型
         type = ms.getSqlCommandType();
         if (type == SqlCommandType.UNKNOWN) {
           throw new BindingException("Unknown execution method for: " + name);

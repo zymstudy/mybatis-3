@@ -76,6 +76,8 @@ class NpeExtendsTest {
         configuration.addMapper(TeacherMapper.class);
         configuration.getMappedStatementNames();
         configuration.setAutoMappingBehavior(AutoMappingBehavior.NONE);
+        configuration.setLazyLoadingEnabled(true);
+      configuration.setAggressiveLazyLoading(false);
 
         return new DefaultSqlSessionFactory(configuration);
     }

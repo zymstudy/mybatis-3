@@ -29,6 +29,7 @@ import org.apache.ibatis.reflection.wrapper.ObjectWrapperFactory;
 
 /**
  * @author Clinton Begin
+ * 对象元数据，提供了对象的属性值的获得和设置等等方法，对 BaseWrapper 操作的进一步增强
  */
 public class MetaObject {
 
@@ -38,6 +39,12 @@ public class MetaObject {
   private final ObjectWrapperFactory objectWrapperFactory;
   private final ReflectorFactory reflectorFactory;
 
+  /**
+   * @param object 要反射的对象，比如Student
+   * @param objectFactory 通过Class对象反射创建对象实例的工厂类，比如创建一个Student对象
+   * @param objectWrapperFactory 对目标对象进行包装，比如可以将Properties对象包装成为一个Map并返回Map对象
+   * @param reflectorFactory 为了避免多次反射同一个Class对象，ReflectorFactory提供了Class对象的反射结果缓存
+   */
   private MetaObject(Object object, ObjectFactory objectFactory, ObjectWrapperFactory objectWrapperFactory, ReflectorFactory reflectorFactory) {
     this.originalObject = object;
     this.objectFactory = objectFactory;
@@ -109,6 +116,7 @@ public class MetaObject {
     return objectWrapper.hasGetter(name);
   }
 
+  // 属性取值
   public Object getValue(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
@@ -123,6 +131,7 @@ public class MetaObject {
     }
   }
 
+  // 属性赋值
   public void setValue(String name, Object value) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {

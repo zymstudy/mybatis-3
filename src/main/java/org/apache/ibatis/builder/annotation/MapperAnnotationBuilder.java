@@ -125,13 +125,21 @@ public class MapperAnnotationBuilder {
 
   public void parse() {
     String resource = type.toString();
+    // 判断是否加载过
     if (!configuration.isResourceLoaded(resource)) {
+      // 加载对应的*mapper.xml文件
       loadXmlResource();
+      // 用于判断是否加载
       configuration.addLoadedResource(resource);
+      // 设置当前命名空间，如果与当前命名空间不一致，抛出错误
+      // 我理解可能是防止多线程下多次解析当前文件
       assistant.setCurrentNamespace(type.getName());
+      // 解析@CacheNamespace
       parseCache();
+      // 解析@CacheNamespaceRef
       parseCacheRef();
       Method[] methods = type.getMethods();
+      // 遍历每个方法，解析其上的注解
       for (Method method : methods) {
         try {
           // issue #237
@@ -139,10 +147,12 @@ public class MapperAnnotationBuilder {
             parseStatement(method);
           }
         } catch (IncompleteElementException e) {
+          // 解析失败，添加到 configuration 中
           configuration.addIncompleteMethod(new MethodResolver(this, method));
         }
       }
     }
+    // 解析上面for循环解析失败的方法
     parsePendingMethods();
   }
 

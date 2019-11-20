@@ -21,6 +21,12 @@
     "http://mybatis.org/dtd/mybatis-3-config.dtd">
 
 <configuration>
+
+    <settings>
+        <!-- 控制台输出sql语句 -->
+        <setting name="logImpl" value="STDOUT_LOGGING" />
+    </settings>
+
     <typeAliases>
         <typeAlias alias="Person" type="org.apache.ibatis.submitted.multiple_discriminator.Person"/>
         <typeAlias alias="Employee" type="org.apache.ibatis.submitted.multiple_discriminator.Employee"/>
@@ -41,4 +47,5 @@
     <mappers>
         <mapper resource="org/apache/ibatis/submitted/multiple_discriminator/Person.xml"/>
     </mappers>
+
 </configuration>
